@@ -32,4 +32,8 @@ pub mod staking_protocol {
     pub fn unstake(ctx: Context<Unstake>, amount: u64) -> Result<()> {
         instructions::unstake::unstake_handler(ctx, amount)
     }
+
+    pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
+        instructions::claim_rewards::claim_rewards_handler(ctx)
+    }
 }
