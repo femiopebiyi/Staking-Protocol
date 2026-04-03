@@ -5,15 +5,19 @@ package_manager = "yarn"
 resolution = true
 skip-lint = false
 
-[programs.localnet]
+[programs.devnet]
 staking_protocol = "83SYHSQguraGomFDQizSGt7pp7oRJy3zdAdEmhXrR3H5"
 
 [registry]
 url = "https://api.apr.dev"
 
 [provider]
-cluster = "localnet"
+cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
 test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+test-init   = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep initialize"
+test-stake  = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'stake'"
+test-unstake = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep unstake"
+test-claim  = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep claim_rewards"

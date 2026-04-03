@@ -1,6 +1,5 @@
 use anchor_lang::prelude::*;
 mod state;
-use state::*;
 
 mod instructions;
 use instructions::*;
