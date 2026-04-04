@@ -16,8 +16,8 @@ pub mod staking_protocol {
 
     pub fn initialize(
         ctx: Context<Initialize>,
-        fee_bps: u64,
         seed: u64,
+        fee_bps: u64,
         lock_duration: i64,
         reward_rate: u64,
     ) -> Result<()> {
@@ -34,5 +34,9 @@ pub mod staking_protocol {
 
     pub fn claim_rewards(ctx: Context<ClaimRewards>) -> Result<()> {
         instructions::claim_rewards::claim_rewards_handler(ctx)
+    }
+
+    pub fn close_stake_entry(ctx: Context<CloseStakeEntry>) -> Result<()> {
+        instructions::close_stake_entry::close_stake_entry_handler(ctx)
     }
 }

@@ -4,6 +4,7 @@ use anchor_lang::prelude::*;
 pub struct StakePool {
     pub seed: u64,
     pub fee_bps: u64,
+    pub accumulated_penalties: u64,
     pub owner: Pubkey,
     pub stake_mint: Pubkey,  // token users stake
     pub reward_mint: Pubkey, // token users earn

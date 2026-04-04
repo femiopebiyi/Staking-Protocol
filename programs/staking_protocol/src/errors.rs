@@ -16,4 +16,10 @@ pub enum StakingError {
     Overflow,
     #[msg("Invalid Fee")]
     InvalidFee,
+    #[msg("Mint does not match pool configuration")]
+    InvalidMint,
+    #[msg("Pass in a valid lock duration")]
+    InvalidLockDuration,
+    #[msg("Unauthorized signature")]
+    Unauthorized,
 }

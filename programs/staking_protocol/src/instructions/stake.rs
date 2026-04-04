@@ -21,6 +21,9 @@ pub struct Stake<'info> {
     )]
     pub pool: Account<'info, StakePool>,
 
+    #[account(
+    address = pool.stake_mint @ StakingError::InvalidMint
+)]
     pub stake_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
@@ -59,7 +62,8 @@ impl<'info> Stake<'info> {
         require_gt!(amount, 0, StakingError::InvalidAmount);
         let clock = Clock::get()?;
 
-        if self.stake_entry.owner == Pubkey::default() {
+        if !self.stake_entry.is_initialized {
+            self.stake_entry.is_initialized = true;
             self.stake_entry.amount_staked = 0;
             self.stake_entry.bump = bumps.stake_entry;
             self.stake_entry.owner = self.user.key();
@@ -69,6 +73,9 @@ impl<'info> Stake<'info> {
             self.stake_entry.last_update_time = clock.unix_timestamp;
         } else {
             update_rewards(&mut self.stake_entry, clock.unix_timestamp, reward_rate)?;
+            if self.stake_entry.amount_staked == 0 {
+                self.stake_entry.stake_start_time = clock.unix_timestamp;
+            }
         }
 
         transfer_checked(

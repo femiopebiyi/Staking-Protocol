@@ -49,15 +49,6 @@ pub struct Initialize<'info> {
     )]
     pub stake_vault: InterfaceAccount<'info, TokenAccount>,
 
-    #[account(
-        init,
-        payer = owner,
-        associated_token::mint = reward_mint,
-        associated_token::authority = pool,
-        associated_token::token_program = token_program
-    )]
-    pub reward_vault: InterfaceAccount<'info, TokenAccount>,
-
     pub associated_token_program: Program<'info, AssociatedToken>,
     pub token_program: Interface<'info, TokenInterface>,
     pub system_program: Program<'info, System>,
@@ -73,6 +64,8 @@ impl<'info> Initialize<'info> {
         reward_rate: u64,
     ) -> Result<()> {
         require!(fee_bps < 10_000, StakingError::InvalidFee);
+        require!(lock_duration >= 0, StakingError::InvalidLockDuration);
+        require!(reward_rate > 0, StakingError::InvalidAmount);
 
         self.pool.set_inner(StakePool {
             seed,
@@ -86,6 +79,7 @@ impl<'info> Initialize<'info> {
             reward_mint_bump: bumps.reward_mint,
             total_staked: 0,
             fee_bps,
+            accumulated_penalties: 0,
         });
 
         Ok(())

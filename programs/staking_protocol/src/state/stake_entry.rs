@@ -3,6 +3,7 @@ use anchor_lang::prelude::*;
 #[account]
 #[derive(InitSpace)]
 pub struct StakeEntry {
+    pub is_initialized: bool,
     pub owner: Pubkey,
     pub pool: Pubkey,
     pub amount_staked: u64,

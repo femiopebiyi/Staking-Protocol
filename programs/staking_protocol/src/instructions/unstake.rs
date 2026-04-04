@@ -20,6 +20,9 @@ pub struct Unstake<'info> {
     )]
     pub pool: Account<'info, StakePool>,
 
+    #[account(
+    address = pool.stake_mint @ StakingError::InvalidMint
+)]
     pub stake_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
@@ -125,6 +128,12 @@ impl<'info> Unstake<'info> {
             .pool
             .total_staked
             .checked_sub(amount)
+            .ok_or(StakingError::Overflow)?;
+
+        self.pool.accumulated_penalties = self
+            .pool
+            .accumulated_penalties
+            .checked_add(penalty)
             .ok_or(StakingError::Overflow)?;
 
         Ok(())
