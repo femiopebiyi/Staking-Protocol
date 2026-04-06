@@ -44,7 +44,8 @@ pub struct Unstake<'info> {
     #[account(
         mut,
         seeds = [b"stakeentry", pool.key().as_ref(), user.key().as_ref()],
-        bump = stake_entry.bump
+        bump = stake_entry.bump,
+        constraint = stake_entry.owner.key() == user.key() @StakingError::Unauthorized
     )]
     pub stake_entry: Account<'info, StakeEntry>,
 
@@ -55,6 +56,7 @@ pub struct Unstake<'info> {
 
 impl<'info> Unstake<'info> {
     fn unstake(&mut self, amount: u64) -> Result<()> {
+        require!(!self.pool.is_paused, StakingError::ProtocolPaused);
         // 1. Validate inputs
         require!(amount > 0, StakingError::InvalidAmount);
         require!(
@@ -66,16 +68,18 @@ impl<'info> Unstake<'info> {
 
         // 2. Calculate penalty before settling rewards
         // No hard reject — fee_bps penalty applies if still locked, 0 if unlocked
-        let penalty =
+        let penalty_u128 =
             if clock.unix_timestamp < self.stake_entry.stake_start_time + self.pool.lock_duration {
                 (amount as u128)
                     .checked_mul(self.pool.fee_bps as u128)
                     .ok_or(StakingError::Overflow)?
                     .checked_div(10_000)
-                    .ok_or(StakingError::Overflow)? as u64
+                    .ok_or(StakingError::Overflow)?
             } else {
                 0
             };
+
+        let penalty = u64::try_from(penalty_u128).map_err(|_| StakingError::Overflow)?;
 
         // 3. Settle pending rewards after all validation passes
         update_rewards(
@@ -123,6 +127,7 @@ impl<'info> Unstake<'info> {
             self.stake_entry.stake_start_time = 0;
         }
 
+        //vault balance might be more than the pool.total_stake because of the accumulated penealties in the vault
         // 8. Decrement pool total by full requested amount
         self.pool.total_staked = self
             .pool

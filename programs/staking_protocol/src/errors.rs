@@ -10,8 +10,6 @@ pub enum StakingError {
     InsufficientStake,
     #[msg("No rewards to claim")]
     NoRewards,
-    #[msg("Reward vault is empty")]
-    RewardVaultEmpty,
     #[msg("Arithmetic overflow")]
     Overflow,
     #[msg("Invalid Fee")]
@@ -22,4 +20,24 @@ pub enum StakingError {
     InvalidLockDuration,
     #[msg("Unauthorized signature")]
     Unauthorized,
+    #[msg("Cannot close account with active stake")]
+    ActiveStake,
+    #[msg("Cannot close account with unclaimed rewards")]
+    UnclaimedRewards,
+    #[msg("There is not penalties accumulated")]
+    PenaltiesVaultEmpty,
+    #[msg("There is not enough funds in the vault")]
+    InsufficientFunds,
+    #[msg("Pool is already paused")]
+    AlreadyPaused,
+    #[msg("Pool is not paused")]
+    NotPaused,
+    #[msg("Pool is paused")]
+    ProtocolPaused,
+    #[msg("Stake entry already exists — use add_stake instead")]
+    StakeEntryAlreadyExists,
+    #[msg("Stake entry does not exist — use initialize_stake first")]
+    StakeEntryNotFound,
+    #[msg("Pool is invalid")]
+    InvalidPool,
 }

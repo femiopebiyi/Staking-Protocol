@@ -51,6 +51,7 @@ pub struct ClaimRewards<'info> {
 
 impl<'info> ClaimRewards<'info> {
     fn claim_rewards(&mut self) -> Result<()> {
+        require!(!self.pool.is_paused, StakingError::ProtocolPaused);
         // 1. Settle pending rewards up to now
         let clock = Clock::get()?;
         update_rewards(

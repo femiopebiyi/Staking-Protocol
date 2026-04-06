@@ -24,8 +24,12 @@ pub mod staking_protocol {
         instructions::initialize::initialize_handler(ctx, fee_bps, seed, lock_duration, reward_rate)
     }
 
-    pub fn stake(ctx: Context<Stake>, amount: u64) -> Result<()> {
-        instructions::stake::stake_handler(ctx, amount)
+    pub fn initalize_stake(ctx: Context<InitializeStake>, amount: u64) -> Result<()> {
+        instructions::initialize_stake::initialize_stake_handler(ctx, amount)
+    }
+
+    pub fn add_stake(ctx: Context<AddStake>, amount: u64) -> Result<()> {
+        instructions::add_stake::add_stake_handler(ctx, amount)
     }
 
     pub fn unstake(ctx: Context<Unstake>, amount: u64) -> Result<()> {
@@ -38,5 +42,16 @@ pub mod staking_protocol {
 
     pub fn close_stake_entry(ctx: Context<CloseStakeEntry>) -> Result<()> {
         instructions::close_stake_entry::close_stake_entry_handler(ctx)
+    }
+
+    pub fn withdraw_penalties(ctx: Context<WithdrawPenalties>) -> Result<()> {
+        instructions::withdraw_penalties::withdraw_penalties_handler(ctx)
+    }
+
+    pub fn pause_pool(ctx: Context<PausePool>) -> Result<()> {
+        instructions::pause_pool::pause_pool_handler(ctx)
+    }
+    pub fn unpause_pool(ctx: Context<UnpausePool>) -> Result<()> {
+        instructions::unpause_pool::unpause_pool_handler(ctx)
     }
 }

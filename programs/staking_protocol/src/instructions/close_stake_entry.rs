@@ -2,6 +2,7 @@ use anchor_lang::prelude::*;
 
 use crate::{
     errors::StakingError,
+    helpers::update_rewards,
     state::{StakeEntry, StakePool},
 };
 
@@ -27,13 +28,22 @@ pub struct CloseStakeEntry<'info> {
 }
 
 pub fn close_stake_entry_handler(ctx: Context<CloseStakeEntry>) -> Result<()> {
-    let entry = &ctx.accounts.stake_entry;
+    let clock = Clock::get()?;
+    // Settle any pending rewards before final checks
+    update_rewards(
+        &mut ctx.accounts.stake_entry,
+        clock.unix_timestamp,
+        ctx.accounts.pool.reward_rate,
+    )?;
 
-    // Guard: don't let users close and escape with unclaimed rewards or balance
-    require!(entry.amount_staked == 0, StakingError::InsufficientStake);
-    require!(entry.rewards_earned == 0, StakingError::NoRewards);
-
-    ctx.accounts.stake_entry.is_initialized = false;
+    require!(
+        ctx.accounts.stake_entry.amount_staked == 0,
+        StakingError::InsufficientStake
+    );
+    require!(
+        ctx.accounts.stake_entry.rewards_earned == 0,
+        StakingError::NoRewards
+    );
 
     Ok(())
 }

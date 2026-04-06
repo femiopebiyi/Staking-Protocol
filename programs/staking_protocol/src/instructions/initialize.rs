@@ -30,7 +30,6 @@ pub struct Initialize<'info> {
         bump,
         mint::decimals = 6,
         mint::authority = pool,
-        mint::freeze_authority = pool,
         mint::token_program = token_program,
     )]
     pub reward_mint: InterfaceAccount<'info, Mint>,
@@ -65,7 +64,9 @@ impl<'info> Initialize<'info> {
     ) -> Result<()> {
         require!(fee_bps < 10_000, StakingError::InvalidFee);
         require!(lock_duration >= 0, StakingError::InvalidLockDuration);
+        const MAX_REWARD_RATE: u64 = 1_000_000_000; // tune per token economics
         require!(reward_rate > 0, StakingError::InvalidAmount);
+        require!(reward_rate <= MAX_REWARD_RATE, StakingError::InvalidAmount);
 
         self.pool.set_inner(StakePool {
             seed,
@@ -80,6 +81,7 @@ impl<'info> Initialize<'info> {
             total_staked: 0,
             fee_bps,
             accumulated_penalties: 0,
+            is_paused: false,
         });
 
         Ok(())

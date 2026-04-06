@@ -1,16 +1,14 @@
 use anchor_lang::prelude::*;
-
 use anchor_spl::{
     associated_token::AssociatedToken,
     token_interface::{transfer_checked, Mint, TokenAccount, TokenInterface, TransferChecked},
 };
 
-use crate::helpers::update_rewards;
-use crate::state::StakePool;
-use crate::{errors::StakingError, state::StakeEntry};
+use crate::errors::StakingError;
+use crate::state::{StakeEntry, StakePool};
 
 #[derive(Accounts)]
-pub struct Stake<'info> {
+pub struct InitializeStake<'info> {
     #[account(mut)]
     pub user: Signer<'info>,
 
@@ -22,8 +20,8 @@ pub struct Stake<'info> {
     pub pool: Account<'info, StakePool>,
 
     #[account(
-    address = pool.stake_mint @ StakingError::InvalidMint
-)]
+        address = pool.stake_mint @ StakingError::InvalidMint
+    )]
     pub stake_mint: Box<InterfaceAccount<'info, Mint>>,
 
     #[account(
@@ -35,8 +33,7 @@ pub struct Stake<'info> {
     pub stake_vault: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
-        init_if_needed,
-        payer = user,
+        mut,
         associated_token::mint = stake_mint,
         associated_token::authority = user,
         associated_token::token_program = token_program,
@@ -44,10 +41,10 @@ pub struct Stake<'info> {
     pub user_ata_stake: Box<InterfaceAccount<'info, TokenAccount>>,
 
     #[account(
-        init_if_needed,
+        init,                                   // hard init — fails if exists
         payer = user,
         space = 8 + StakeEntry::INIT_SPACE,
-        seeds = [b"stakeentry",  pool.key().as_ref(), user.key().as_ref()],
+        seeds = [b"stakeentry", pool.key().as_ref(), user.key().as_ref()],
         bump
     )]
     pub stake_entry: Account<'info, StakeEntry>,
@@ -57,27 +54,26 @@ pub struct Stake<'info> {
     pub system_program: Program<'info, System>,
 }
 
-impl<'info> Stake<'info> {
-    fn stake(&mut self, amount: u64, bumps: &StakeBumps, reward_rate: u64) -> Result<()> {
+impl<'info> InitializeStake<'info> {
+    fn initialize_stake(&mut self, amount: u64, bumps: &InitializeStakeBumps) -> Result<()> {
+        require!(!self.pool.is_paused, StakingError::ProtocolPaused);
         require_gt!(amount, 0, StakingError::InvalidAmount);
+
         let clock = Clock::get()?;
 
-        if !self.stake_entry.is_initialized {
-            self.stake_entry.is_initialized = true;
-            self.stake_entry.amount_staked = 0;
-            self.stake_entry.bump = bumps.stake_entry;
-            self.stake_entry.owner = self.user.key();
-            self.stake_entry.pool = self.pool.key();
-            self.stake_entry.stake_start_time = clock.unix_timestamp;
-            self.stake_entry.rewards_earned = 0;
-            self.stake_entry.last_update_time = clock.unix_timestamp;
-        } else {
-            update_rewards(&mut self.stake_entry, clock.unix_timestamp, reward_rate)?;
-            if self.stake_entry.amount_staked == 0 {
-                self.stake_entry.stake_start_time = clock.unix_timestamp;
-            }
-        }
+        // Initialize all fields — account is guaranteed fresh by `init`
+        // No is_initialized flag needed; discriminator is the proof
+        self.stake_entry.set_inner(StakeEntry {
+            owner: self.user.key(),
+            pool: self.pool.key(),
+            amount_staked: 0, // updated after transfer below
+            rewards_earned: 0,
+            last_update_time: clock.unix_timestamp,
+            stake_start_time: clock.unix_timestamp,
+            bump: bumps.stake_entry, // canonical bump from Anchor
+        });
 
+        // Transfer tokens from user to vault
         transfer_checked(
             CpiContext::new(
                 self.token_program.to_account_info(),
@@ -92,6 +88,7 @@ impl<'info> Stake<'info> {
             self.stake_mint.decimals,
         )?;
 
+        // Update balances after successful transfer
         self.stake_entry.amount_staked = self
             .stake_entry
             .amount_staked
@@ -108,7 +105,6 @@ impl<'info> Stake<'info> {
     }
 }
 
-pub fn stake_handler(ctx: Context<Stake>, amount: u64) -> Result<()> {
-    ctx.accounts
-        .stake(amount, &ctx.bumps, ctx.accounts.pool.reward_rate)
+pub fn initialize_stake_handler(ctx: Context<InitializeStake>, amount: u64) -> Result<()> {
+    ctx.accounts.initialize_stake(amount, &ctx.bumps)
 }

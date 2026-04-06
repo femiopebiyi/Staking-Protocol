@@ -14,4 +14,5 @@ pub struct StakePool {
     pub total_staked: u64,  // total tokens currently staked
     pub bump: u8,
     pub reward_mint_bump: u8,
+    pub is_paused: bool,
 }
