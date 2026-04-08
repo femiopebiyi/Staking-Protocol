@@ -92,7 +92,6 @@ pub fn initialize_handler(
     ctx: Context<Initialize>,
     seed: u64,
     fee_bps: u64,
-
     lock_duration: i64,
     reward_rate: u64,
 ) -> Result<()> {

@@ -16,8 +16,22 @@ cluster = "devnet"
 wallet = "~/.config/solana/id.json"
 
 [scripts]
-test = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
-test-init   = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep initialize"
-test-stake  = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'stake'"
-test-unstake = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep unstake"
-test-claim  = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep claim_rewards"
+test         = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts"
+
+# ── Core instruction suites ──────────────────────────────────────────────────
+# Each grep is "staking <describe-name>" — matches the full title path
+# "staking stake" does NOT match "staking unstake" or "staking F-05 — split stake"
+test-init    = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'staking initialize'"
+test-stake   = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'staking stake'"
+test-unstake = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'staking unstake'"
+test-claim   = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'staking claim_rewards'"
+
+# ── Security suites ──────────────────────────────────────────────────────────
+test-security = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'F-0'"
+test-f01      = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'F-01'"
+test-f02      = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'F-02'"
+test-f03      = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'F-03'"
+test-f04      = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'F-04'"
+test-f05      = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'F-05'"
+test-f06      = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'F-06'"
+test-f07      = "yarn run ts-mocha -p ./tsconfig.json -t 1000000 tests/**/*.ts --grep 'F-07'"

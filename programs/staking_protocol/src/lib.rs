@@ -21,10 +21,10 @@ pub mod staking_protocol {
         lock_duration: i64,
         reward_rate: u64,
     ) -> Result<()> {
-        instructions::initialize::initialize_handler(ctx, fee_bps, seed, lock_duration, reward_rate)
+        instructions::initialize::initialize_handler(ctx, seed, fee_bps, lock_duration, reward_rate)
     }
 
-    pub fn initalize_stake(ctx: Context<InitializeStake>, amount: u64) -> Result<()> {
+    pub fn initialize_stake(ctx: Context<InitializeStake>, amount: u64) -> Result<()> {
         instructions::initialize_stake::initialize_stake_handler(ctx, amount)
     }
 
